@@ -1,23 +1,15 @@
 package rsaexample;
 
 import java.math.BigInteger;
-import java.security.SecureRandom;
 
 public class RSAExample {
-
-    /**
-     * @param args the command line arguments
-     */
     public static void main(String[] args) {
-        BigInteger p = BigInteger.probablePrime(512, new SecureRandom());
-        BigInteger q = BigInteger.probablePrime(512, new SecureRandom());
-        BigInteger N = p.multiply(q);
-        BigInteger totient = p.subtract(BigInteger.ONE).multiply(q.subtract(BigInteger.ONE));
-        BigInteger e = totient.divide(BigInteger.valueOf((int)(Math.random()*100)));
-        while(e.gcd(totient).compareTo(BigInteger.ONE) == 1) {
-            e = e.nextProbablePrime();
-        }
-        BigInteger d = e.modInverse(totient);
+        BigInteger p = RSA.getRandomPrime(512);
+        BigInteger q = RSA.getRandomPrime(512);
+        BigInteger N = RSA.getModulus(p, q);
+        BigInteger phi = RSA.getPhi(p, q);
+        BigInteger e = RSA.getPublicKey(phi);
+        BigInteger d = RSA.getPrivateKey(e, phi);
         String msg = "test";
         System.out.println("Plaintext: " + msg);
         System.out.println("Plaintext in bytes: " + RSA.convert(msg.getBytes()));
