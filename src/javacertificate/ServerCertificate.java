@@ -14,11 +14,11 @@ import java.io.*;
 import java.util.*;
 
 public class ServerCertificate {
-    private ArrayList<ServerCertificateThread> threadClient;//inisialisasi arraylist
+    private ArrayList<ServerCertificate.ServerCertificateThread> threadClient;//inisialisasi arraylist
    
     public ServerCertificate() {
 		
-		threadClient = new ArrayList<ServerCertificateThread>();//membuat objek threadClient
+		threadClient = new ArrayList<ServerCertificate.ServerCertificateThread>();//membuat objek threadClient
 	}
 
     public void StartServer()
@@ -36,8 +36,8 @@ public class ServerCertificate {
         while (true)
         {
             try {
-                ServerCertificateThread client;//membuat object thread client
-                client = new ServerCertificateThread(serverSocket.accept(), this);
+                ServerCertificate.ServerCertificateThread client;//membuat object thread client
+                client = new ServerCertificate.ServerCertificateThread(serverSocket.accept(), this);
                 client.setDaemon(true);
              
              
@@ -60,7 +60,14 @@ public class ServerCertificate {
   
   
   
-
+void broadcast( String msg) {//karena fungsi ini dipanggil berkali2 maka saya buat fungsi sendiri
+		for (ServerCertificate.ServerCertificateThread t : threadClient) {//untuk semua thread pada threadClient
+			
+				t.out.println(msg);//pesan akan dikirim ke semua thread kecuali thread pengirim
+			
+                      
+		}
+	}
 class ServerCertificateThread extends Thread {
     private Socket socket = null;
     private ServerCertificate server;
@@ -71,7 +78,7 @@ class ServerCertificateThread extends Thread {
     
    
     public ServerCertificateThread(Socket socket, ServerCertificate server) {
-	super("KKMultiServerThread");//membuat objek thread baru
+	super("ServerCertificateThread");//membuat objek thread baru
 	this.socket = socket;//inisialisasi socket
         this.server = server;//inisialisasi socket
     }
@@ -84,14 +91,74 @@ class ServerCertificateThread extends Thread {
 				BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
 				// identifikasi thread memasukkan nama client
+                                out.println("enter your ID.");
+                                
 				name = in.readLine();
                                 alias = "@" + name;
-                                Date date= new Date();
-                                      
-                                //generate certificate
-                                  //fungsi RSA
-                              	out.println("anggap ini certifikat: "+""+name+"|"+date.toString()+"|"+"public key");
-    
+                                System.out.println("it's "+name);
+				out.println("Server: welcome "+name);
+                                server.broadcast("Server : " + name + " entered the room");//pesan ini akan dibroadcast pada seluruh thread kecuali thread pengirim
+                              
+                                 this.out.println("Server Who's online?");
+                                   if(threadClient.size()!=1){
+                                   for (ServerCertificate.ServerCertificateThread t : threadClient) {//untuk semua thread pada threadClient
+						if(t!=this)
+                                                {this.out.println(t.name);//pesan akan dikirim ke semua thread kecuali thread pengirim    
+                                    
+                                                }
+                                   }
+                                   }
+                                   else{this.out.println("Server: You are alone");}
+                                   String line;
+                                   while ((line = in.readLine()) != null && !line.equals("Bye")) {//selama input tidak Bye akan terus 
+                                    if(line.startsWith("certificate")){ // minta public key seseorang
+                                        String[] words = line.split("\\s", 2);
+                                        if (words.length > 1 && words[1] != null) {
+                                        words[1] = words[1].trim();
+                                         if (!words[1].isEmpty()) {
+                                           
+                                                 //cari public key yang diminta
+                                                    //enkrip pesan menggunakan private key si authority
+                                                     Date date= new Date();
+                                                    this.out.println("Certificate anggap ini balasan dari server yang sudah di enkripsi: "+""+name+"|"+date.toString()+"|"+words[1]);
+                                                    
+                                                
+                                       
+                                     }
+                                   }
+                                }
+                                   else  if(line.startsWith("@")){
+                                        String[] words = line.split("\\s", 2);
+                                        if (words.length > 1 && words[1] != null) {
+                                        words[1] = words[1].trim();
+                                        this.out.println(words[0]);
+                                         if (!words[1].isEmpty()) {
+                                 
+                                        for (ServerCertificate.ServerCertificateThread t : threadClient) {
+                                        if(t.alias.equals(words[0])){
+                                         String msg = name + " mengirim certifikat: " + words[1];
+					//System.out.println(msg);
+                                        t.out.println(msg);
+                                        this.out.println(words[0] + " received your message");
+                                        }
+                                        }
+                                       
+                                     }
+                                   }
+                                }
+                                    else{
+                                    String msg = name + ":" + line;
+					System.out.println(msg);
+					server.broadcast( msg);
+                                    }
+				}
+                                System.out.println(name + " leave the room");
+                               server.broadcast( name + " leave the room");
+                               
+                               threadClient.remove(this);
+                               
+                               out.println("Server :you quit");
+                               
 			
                                
                                
