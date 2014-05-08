@@ -16,11 +16,12 @@ public class clientServer2 {
     
     // deklarasi socket
     private static Socket socket;
-    
+    private String sertifikat;
     // deklarasi I/O stream
     private static BufferedReader in;
     private static PrintWriter out;
-    
+    private static clientServer2 cl= new clientServer2();
+
     // deklarasi boolean untuk status, diletakkan dalam scope private static agar dapat diakses keseluruhan class
     private static boolean active;
     
@@ -52,14 +53,27 @@ public class clientServer2 {
         
          // inisialisasi awal adalah true dimana setiap client terhubung berarti client aktif
         active = true;
-        
         // class threads diinstansiasi kemudian dijalankan agar setiap thread yg terhubung dpt merima pesan dari server
-        new threads().start();
+        new clientServer2.threads().start();
+        
+        //generate key untuk user
+           //fungsi generate
+        //simpen public key+ private key si user
+        int public_key=1111111;
         
         // selama thread masih aktif akan meminta input dari console
         while(active){
             fromUser = stdIn.readLine();
             if (fromUser != null) {
+                if(fromUser.startsWith("certificate"))
+                {
+                    fromUser= fromUser+" "+public_key;
+                }
+                 if(fromUser.startsWith("@"))
+                {
+                     
+                    fromUser= fromUser+" "+cl.getSertifikat();
+                }
                     // inputan dari console nantinya akan ditampilkan dari PrintWriter stream pada thread
                     out.println(fromUser);
             }            
@@ -71,6 +85,20 @@ public class clientServer2 {
         stdIn.close();
         socket.close();
     }
+
+    /**
+     * @return the sertifikat
+     */
+    public String getSertifikat() {
+        return sertifikat;
+    }
+
+    /**
+     * @param sertifikat the sertifikat to set
+     */
+    public void setSertifikat(String sertifikat) {
+        this.sertifikat = sertifikat;
+    }
     
     private static class threads extends Thread {
         
@@ -78,8 +106,6 @@ public class clientServer2 {
         public void run(){
             try{
                 String fromServer;
-                System.out.println("enter your ID.");
-
                 // membaca input dari server
                 while ((fromServer = in.readLine()) != null) {
                     // cek apabila input dari server adalah "<Server> Exit." maka berhenti membaca dan keluar
@@ -87,10 +113,18 @@ public class clientServer2 {
                         break;
                     }
                     // pesan dari server akan ditampilkan pada console
-                    System.out.println(fromServer);   
-                    PrintWriter writer = new PrintWriter("certificate.txt", "UTF-8");//certifate disimpen di file
-                    writer.println(fromServer);
-                    writer.close();
+                    if(fromServer.startsWith("Certificate"))
+                    {
+                          String[] words = fromServer.split("\\s", 2);
+                                        if (words.length > 1 && words[1] != null) {
+                                        words[1] = words[1].trim();
+                                         if (!words[1].isEmpty()) {
+                        cl.setSertifikat(words[1]);
+                        System.out.println(words[1]);
+                                         }}
+                                        
+                    }
+                    System.out.println(fromServer); 
 
                 }
                 // ketika sudah berhenti membaca maka status thread diubah jadi false sehingga tidak dapat lagi membaca input dari user pada console
