@@ -46,7 +46,34 @@ public class clientServer2 {
     public static void setNa(BigInteger aNa) {
         Na = aNa;
     }
-    private String sertifikat;
+       /**
+     * @return the sertifikat
+     */
+    public BigInteger getSertifikat() {
+        return sertifikat;
+    }
+
+    /**
+     * @param sertifikat the sertifikat to set
+     */
+    public void setSertifikat(BigInteger sertifikat) {
+        this.sertifikat = sertifikat;
+    }
+       /**
+     * @return the sUserLain
+     */
+    public BigInteger getsUserLain() {
+        return sUserLain;
+    }
+
+    /**
+     * @param sUserLain the sUserLain to set
+     */
+    public void setsUserLain(BigInteger sUserLain) {
+        this.sUserLain = sUserLain;
+    }
+    private BigInteger sertifikat;   //sertifikat milik user 
+    private BigInteger sUserLain;    //sertifikat user lain 
     private static String pesan;
     // deklarasi I/O stream
     private static BufferedReader in;
@@ -109,11 +136,18 @@ public class clientServer2 {
         while(active){
             fromUser = stdIn.readLine();
             if (fromUser != null) {
-                if(fromUser.startsWith("certificate"))
+                if(fromUser.startsWith("certificate")) //untuk meminta sertifikat ke authority
                 {
                     fromUser= fromUser+" "+e+" "+N;
                 }
-                 if(fromUser.startsWith("@"))
+                else  if(fromUser.startsWith("decript")) //untuk decript sertifikat user lain
+                {
+                    BigInteger decripted;
+                    decripted = RSA.decrypt(getEa(), getNa(), cl.getsUserLain().toByteArray());
+                    System.out.println("Decripted ciphertext in bytes: " + RSA.convert(decripted.toByteArray()));
+                    System.out.println("Decripted ciphertext: " + new String(decripted.toByteArray()));
+                }
+                else if(fromUser.startsWith("@")) //untuk share ke user lain
                 {
                      
                     fromUser= fromUser+" "+cl.getSertifikat();
@@ -130,25 +164,17 @@ public class clientServer2 {
         socket.close();
     }
 
-    /**
-     * @return the sertifikat
-     */
-    public String getSertifikat() {
-        return sertifikat;
-    }
+ 
 
-    /**
-     * @param sertifikat the sertifikat to set
-     */
-    public void setSertifikat(String sertifikat) {
-        this.sertifikat = sertifikat;
-    }
-    
+ 
     private static class threads extends Thread {
         
         // tidak membutuhkan constructor, hanya berjalan menjalan fungsi run setiap diinstansiasi di fungsi utama
         public void run(){
             try{
+                setEa(new BigInteger("4179534756890698623711297698281705338411989024077137560711274821475536013310162489346308725407748080177440996573678453311601018561724698397557224708731609294546204677590933177929992065506286495156631355288017461914067744659277187338010472114306077796630867868525548110676576117444127614198372427410094070501"));
+                setNa(new BigInteger("108667903679158164216493740155324338798711714626005576578493145358363936346064224723004026860601450084613465910915639786101626482604842158336487842427021862512050676569321518486648699340277808085396611744132143247652466513478030710379003125768282448801398325245264016737884182642093410098509541570191720006119"));
+               
                 String fromServer;
                 // membaca input dari server
                 while ((fromServer = in.readLine()) != null) {
@@ -157,18 +183,29 @@ public class clientServer2 {
                         break;
                     }
                     // pesan dari server akan ditampilkan pada console
-                    if(fromServer.startsWith("certificate"))
+                    else if(fromServer.startsWith("certificate"))
                     {
                           String[] words = fromServer.split("\\s", 2);
                                         if (words.length > 1 && words[1] != null) {
                                         words[1] = words[1].trim();
                                          if (!words[1].isEmpty()) {
-                        cl.setSertifikat(words[1]);
+                        cl.setSertifikat(new BigInteger(words[1]));
                         System.out.println(words[1]);
+                        System.out.println(new BigInteger(words[1]));
                                          }}
                                         
                     }
-                    System.out.println(fromServer); 
+                    else if(fromServer.startsWith("Share"))
+                    {
+                          String[] words = fromServer.split("\\s", 2);
+                                        if (words.length > 1 && words[1] != null) {
+                                        words[1] = words[1].trim();
+                                         if (!words[1].isEmpty()) {
+                        cl.setsUserLain(new BigInteger(words[1]));
+                                         }}
+                                        
+                    }
+                    else{System.out.println(fromServer);} 
 
                 }
                 // ketika sudah berhenti membaca maka status thread diubah jadi false sehingga tidak dapat lagi membaca input dari user pada console
