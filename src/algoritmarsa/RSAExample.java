@@ -10,7 +10,7 @@ public class RSAExample {
         BigInteger phi = RSA.getPhi(p, q);
         BigInteger e = RSA.getPublicKey(phi);
         BigInteger d = RSA.getPrivateKey(e, phi);
-        String msg = "test";
+        String msg = "test | bloon|anjing";
         System.out.println("Plaintext: " + msg);
         System.out.println("Plaintext in bytes: " + RSA.convert(msg.getBytes()));
         System.out.println("e= "+e);

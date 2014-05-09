@@ -69,8 +69,8 @@ public class ServerCertificate {
         while (true)
         {
             try {
-                setDa(new BigInteger("81546851167105528930875222780166718864283181164045479163889748660013506929580917248668199340574500395541257019601630194472543901157823474288972704743291565552489883343627009444784764291857140153629565407026170208970563494263776950247417554811726528756047082694402719053879248347959017287891209918521746051773"));
-                setNa(new BigInteger("108667903679158164216493740155324338798711714626005576578493145358363936346064224723004026860601450084613465910915639786101626482604842158336487842427021862512050676569321518486648699340277808085396611744132143247652466513478030710379003125768282448801398325245264016737884182642093410098509541570191720006119"));
+                setDa(new BigInteger("1005441568964038108725070606086620237883380303344160266935329406901216364571343580813805170814118657992286570605815115393415443708197619438534699853402238841418639965991853528206896413232025162350318403781003325244830937094964054555775571178863520026003857053541904440901378159897233855955051288474729938883"));
+                setNa(new BigInteger("71386351396446705719480013032150036889720001537435378952408387889986361884565394237780167127802424717452346513012873192932496503282030980135963689591558974980607441276176867294175126719259657521909854254658617869706076412873596982114825748401018960929238041787923302735140851969855208590511588134030915497081"));
                 ServerCertificate.ServerCertificateThread client;//membuat object thread client
                 client = new ServerCertificate.ServerCertificateThread(serverSocket.accept(), this);
                 client.setDaemon(true);
@@ -162,15 +162,22 @@ class ServerCertificateThread extends Thread {
                                         if (words.length > 1 && words[1] != null) {
                                         words[1] = words[1].trim();
                                         words[2]= words[2].trim();
+                                        BigInteger ku1 = new BigInteger(words[1]);
+                                        BigInteger ku2 = new BigInteger(words[2]);
+
                                          if (!words[1].isEmpty()) {
                                            
                                                  //cari public key yang diminta
                                                     //enkrip pesan menggunakan private key si authority
                                                      Date date= new Date();
-                                                     String msg=""+name+"|"+date.toString()+"|"+words[1]+" "+words[2];
+                                                     String msg=name+"|"+date.toString()+"|"+ku1+" "+ku2;
                                                      BigInteger cipher = RSA.encrypt(getDa(), getNa(), msg.getBytes());
                                                     this.out.println("certificate "+cipher);
-                                                    
+                                                   //  this.out.println(ku1);
+                                                   //  this.out.println("Plaintext in bytes: " + RSA.convert(msg.getBytes()));
+                                                 //   BigInteger decripted = RSA.decrypt(new BigInteger("54447217166781385718247467566894095932837289308213424624718261949989598047549876961018771538154391733650094798060665994609531231316803289934209593756273781327670418497355458010526000682649498198462157628479756341648048203701867022130558473160490618357327513323159062519998359675790884233498116384351900927691"), new BigInteger("71386351396446705719480013032150036889720001537435378952408387889986361884565394237780167127802424717452346513012873192932496503282030980135963689591558974980607441276176867294175126719259657521909854254658617869706076412873596982114825748401018960929238041787923302735140851969855208590511588134030915497081"), cipher.toByteArray());
+                                                  //  this.out.println("Decripted ciphertext in bytes: " + RSA.convert(decripted.toByteArray()));
+                                                //    this.out.println("Decripted ciphertext: " + new String(decripted.toByteArray()));
                                                 
                                        
                                      }
@@ -180,12 +187,12 @@ class ServerCertificateThread extends Thread {
                                         String[] words = line.split("\\s", 2);
                                         if (words.length > 1 && words[1] != null) {
                                         words[1] = words[1].trim();
-                                        this.out.println(words[0]);
+                                        
                                          if (!words[1].isEmpty()) {
                                  
                                         for (ServerCertificate.ServerCertificateThread t : threadClient) {
                                         if(t.alias.equals(words[0])){
-                                         String msg = " Share " + words[1];
+                                         String msg = "Share " + words[1];
 					//System.out.println(msg);
                                         t.out.println(msg);
                                         this.out.println(words[0] + " received your message");
